@@ -1,0 +1,27 @@
+#!/bin/bash
+#SBATCH --job-name=get_movie_data
+#SBATCH --nodes=1
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=4
+#SBATCH --time=02:00:00
+#SBATCH --output=.logs/get_movie_data_%j.out
+#SBATCH --error=.logs/get_movie_data_%j.err
+
+# Create logs directory if it doesn't exist
+mkdir -p .logs
+
+# Print job information
+echo "Job started on $(date)"
+echo "Running on node: $(hostname)"
+echo "Job ID: $SLURM_JOB_ID"
+echo "Working directory: $(pwd)"
+
+# Activate conda environment
+source $(conda info --base)/etc/profile.d/conda.sh
+conda activate datalad_env
+
+# Run the Python script
+python get_movie_data.py
+
+# Print completion information
+echo "Job completed on $(date)"
