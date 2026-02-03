@@ -1,0 +1,51 @@
+#!/bin/bash
+#SBATCH --job-name=fmriprep_one_%j
+#SBATCH --partition=main
+#SBATCH --nodes=1
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=8
+#SBATCH --mem=32GB
+#SBATCH --time=4:00:00
+#SBATCH --output=/hopper/groups/enkavilab/users/zenkavi/narratives/src/.logs/fmriprep_one_%j.out
+#SBATCH --error=/hopper/groups/enkavilab/users/zenkavi/narratives/src/.logs/fmriprep_one_%j.err
+#SBATCH --mail-user=zenkavi@cmc.edu
+#SBATCH --mail-type=FAIL
+
+# -------------------------
+# Define paths
+# -------------------------
+SINGULARITY_IMG="/hopper/groups/enkavilab/singularity_images/fmriprep-25.2.4"
+BIDS_DIR="/hopper/groups/enkavilab/data/ds004892"
+OUT_DIR="$BIDS_DIR/derivatives/fmriprep"
+WORK_DIR="/hopper/groups/enkavilab/users/zenkavi/fmriprep_wdir"
+FS_LICENSE="/hopper/groups/enkavilab/freesurfer_license.txt"
+FILTER_FILE="bids_filter.json"
+
+# -------------------------
+# Get subject label from list
+# -------------------------
+SUBJECT_LABEL=sub-S01
+
+echo "Starting preprocessing for subject ${SUBJECT_LABEL}"
+
+# -------------------------
+# Run fMRIPrep
+# -------------------------
+singularity run --cleanenv \
+  -B "$BIDS_DIR":/data \
+  -B "$OUT_DIR":/out \
+  -B "$WORK_DIR":/work \
+  -B "$FS_LICENSE":/fs_license.txt \
+  "$SINGULARITY_IMG" \
+  /data /out participant \
+  --participant-label "$SUBJECT_LABEL" \
+  --bids-filter-file /data/$FILTER_FILE \
+  --skip_bids_validation \
+  --fs-license-file /fs_license.txt \
+  --fs-no-reconall \
+  --nthreads 8 \
+  --omp-nthreads 8 \
+  --mem-mb 80000 \
+  --work-dir /work/${SUBJECT_LABEL}
+
+echo "Finished subject ${SUBJECT_LABEL}"
